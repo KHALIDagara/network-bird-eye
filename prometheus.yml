@@ -1,86 +1,197 @@
 # Prometheus Configuration for SNMP Monitoring
 global:
-  scrape_interval: 15s        # How often to scrape targets
-  evaluation_interval: 15s    # How often to evaluate rules
-  scrape_timeout: 10s         # How long until a scrape request times out
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
   external_labels:
     monitor: 'gns3-snmp-monitor'
 
-# Rule files for alerting (optional)
 rule_files:
   - "alert_rules.yml"
 
-# Scrape configuration
 scrape_configs:
-  # Scrape Prometheus itself
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
     scrape_interval: 30s
 
-  # Scrape SNMP Exporter's own metrics (performance monitoring)
   - job_name: 'snmp-exporter'
     static_configs:
       - targets: ['localhost:9116']
     scrape_interval: 30s
     metrics_path: /metrics
 
-  # Scrape router using SNMP - Interface Statistics
-  - job_name: 'snmp-router-interfaces'
+  # === Router R1 - Marrakech ===
+  - job_name: 'snmp-router-interfaces marrakech'
     static_configs:
       - targets:
-        - 172.21.0.2 # Replace with your GNS3 router IP
+        - 172.21.0.2
     metrics_path: /snmp
     params:
-      module: [if_mib]  # Use the if_mib module from snmp.yml
+      module: [if_mib]
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: localhost:9116  # SNMP exporter address
+        replacement: localhost:9116
       - source_labels: [__param_target]
         target_label: device_name
-        replacement: 'GNS3-Router'
+        replacement: 'RouterR1Marrakech'
     scrape_interval: 30s
 
-  # Scrape router using SNMP - System Information
-  - job_name: 'snmp-router-system'
+  - job_name: 'snmp-router-system marrakech'
     static_configs:
       - targets:
-        - 172.21.0.2  # Replace with your GNS3 router IP
+        - 172.21.0.2
     metrics_path: /snmp
     params:
-      module: [system]  # Use the system module (visible in your metrics)
+      module: [system]
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: localhost:9116  # SNMP exporter address
+        replacement: localhost:9116
       - source_labels: [__param_target]
         target_label: device_name
-        replacement: 'GNS3-Router'
-    scrape_interval: 60s  # System info changes less frequently
+        replacement: 'RouterR1Marrakech'
+    scrape_interval: 60s
 
-  # Scrape router using SNMP - Basic Monitoring
-  - job_name: 'snmp-router-basic'
+  - job_name: 'snmp-router-basic marrakech'
     static_configs:
       - targets:
-        - 172.21.0.2  # Replace with your GNS3 router IP
+        - 172.21.0.2
     metrics_path: /snmp
     params:
-      module: [basic]  # Use the basic module (visible in your metrics)
+      module: [basic]
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: localhost:9116  # SNMP exporter address
+        replacement: localhost:9116
       - source_labels: [__param_target]
         target_label: device_name
-        replacement: 'GNS3-Router'
+        replacement: 'RouterR1Marrakech'
     scrape_interval: 30s
+
+  # === Router R2 - Tanger ===
+  - job_name: 'snmp-router-interfaces tanger'
+    static_configs:
+      - targets:
+        - 10.1.1.1
+    metrics_path: /snmp
+    params:
+      module: [if_mib]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9116
+      - source_labels: [__param_target]
+        target_label: device_name
+        replacement: 'RouterR2Tanger'
+    scrape_interval: 30s
+
+  - job_name: 'snmp-router-system tanger'
+    static_configs:
+      - targets:
+        - 10.1.1.1
+    metrics_path: /snmp
+    params:
+      module: [system]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9116
+      - source_labels: [__param_target]
+        target_label: device_name
+        replacement: 'RouterR2Tanger'
+    scrape_interval: 60s
+
+  - job_name: 'snmp-router-basic tanger'
+    static_configs:
+      - targets:
+        - 10.1.1.1
+    metrics_path: /snmp
+    params:
+      module: [basic]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9116
+      - source_labels: [__param_target]
+        target_label: device_name
+        replacement: 'RouterR2Tanger'
+    scrape_interval: 30s
+
+  # === Router R3 - Rabat ===
+  - job_name: 'snmp-router-interfaces rabat'
+    static_configs:
+      - targets:
+        - 10.2.2.1
+    metrics_path: /snmp
+    params:
+      module: [if_mib]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9116
+      - source_labels: [__param_target]
+        target_label: device_name
+        replacement: 'RouterR3RAbat'
+    scrape_interval: 30s
+
+  - job_name: 'snmp-router-system rabat'
+    static_configs:
+      - targets:
+        - 10.2.2.1
+    metrics_path: /snmp
+    params:
+      module: [system]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9116
+      - source_labels: [__param_target]
+        target_label: device_name
+        replacement: 'RouterR3RAbat'
+    scrape_interval: 60s
+
+  - job_name: 'snmp-router-basic rabat'
+    static_configs:
+      - targets:
+        - 10.2.2.1
+    metrics_path: /snmp
+    params:
+      module: [basic]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9116
+      - source_labels: [__param_target]
+        target_label: device_name
+        replacement: 'RouterR3RAbat'
+    scrape_interval: 30s
+
