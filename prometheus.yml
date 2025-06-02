@@ -1,0 +1,86 @@
+# Prometheus Configuration for SNMP Monitoring
+global:
+  scrape_interval: 15s        # How often to scrape targets
+  evaluation_interval: 15s    # How often to evaluate rules
+  scrape_timeout: 10s         # How long until a scrape request times out
+  external_labels:
+    monitor: 'gns3-snmp-monitor'
+
+# Rule files for alerting (optional)
+rule_files:
+  - "alert_rules.yml"
+
+# Scrape configuration
+scrape_configs:
+  # Scrape Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+
+  # Scrape SNMP Exporter's own metrics (performance monitoring)
+  - job_name: 'snmp-exporter'
+    static_configs:
+      - targets: ['localhost:9116']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # Scrape router using SNMP - Interface Statistics
+  - job_name: 'snmp-router-interfaces'
+    static_configs:
+      - targets:
+        - 172.21.0.2 # Replace with your GNS3 router IP
+    metrics_path: /snmp
+    params:
+      module: [if_mib]  # Use the if_mib module from snmp.yml
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9116  # SNMP exporter address
+      - source_labels: [__param_target]
+        target_label: device_name
+        replacement: 'GNS3-Router'
+    scrape_interval: 30s
+
+  # Scrape router using SNMP - System Information
+  - job_name: 'snmp-router-system'
+    static_configs:
+      - targets:
+        - 172.21.0.2  # Replace with your GNS3 router IP
+    metrics_path: /snmp
+    params:
+      module: [system]  # Use the system module (visible in your metrics)
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9116  # SNMP exporter address
+      - source_labels: [__param_target]
+        target_label: device_name
+        replacement: 'GNS3-Router'
+    scrape_interval: 60s  # System info changes less frequently
+
+  # Scrape router using SNMP - Basic Monitoring
+  - job_name: 'snmp-router-basic'
+    static_configs:
+      - targets:
+        - 172.21.0.2  # Replace with your GNS3 router IP
+    metrics_path: /snmp
+    params:
+      module: [basic]  # Use the basic module (visible in your metrics)
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9116  # SNMP exporter address
+      - source_labels: [__param_target]
+        target_label: device_name
+        replacement: 'GNS3-Router'
+    scrape_interval: 30s
